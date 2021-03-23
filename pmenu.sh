@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Program list
 programs_name=$(pactl list sink-inputs | grep -Po 'binary = "\K[^"]*')

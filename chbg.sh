@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 BG_PATH=$1
 
