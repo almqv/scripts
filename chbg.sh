@@ -8,7 +8,7 @@ if test -f "$BG_PATH"; then
 	echo -e "\e[1mIf you have multiple screens then you might have to set the background yourself as nitrogen thinks that your array of screen is itself only one screen.\e[0m"
 
 	echo -e "\e[1mUpdating lockscreen.\e[0m"
-	betterlockscreen -r 1920x1080 -u $BG_PATH --dimblur
+	betterlockscreen -u $BG_PATH 
 
 	echo -e "\e[1mUpdating background image.\e[0m"
 	cp $BG_PATH $HOME/.wallpaper.jpg
