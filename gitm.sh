@@ -22,11 +22,6 @@ if [ -z "$option" ] || [ -z "$name" ]; then
 	exit
 fi
 
-if [ "$option" = "help" ]; then
-	print_help
-	exit
-fi
-
 if [ "$option" = "mov" ] && [ -z "$name2" ]; then
 	print_help
 	exit
@@ -45,3 +40,16 @@ del_repo() {
 mov_repo() {
 	sudo mv /srv/git/$name /srv/git/$name2 && echo "Renamed repository \"$name\" to \"$name2\"."
 }
+
+if [ "$option" = "new" ]; then
+	new_repo
+elif [ "$option" = "mov" ]; then
+	mov_repo
+
+elif [ "$option" = "del" ]; then
+	del_repo
+else
+	print_help
+fi
+
+
