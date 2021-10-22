@@ -156,6 +156,10 @@ function output() {
     fi
 } #}}}
 
+case $BUTTON in
+	1) notify-send "Pog" "ahifhgsduifhui";;
+esac
+
 reloadSink
 case "$1" in
     --up)
