@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+
+browser=firefox
+bookmarks=$HOME/.config/bookmarks
+
+$browser $(cat $bookmarks/$1)
