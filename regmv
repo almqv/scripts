@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+
+fileselector=$1
+pattern=$2
+new=$3
+
+for f in $fileselector; do mv "$f" "$(echo "$f" | sed s/$pattern/$new/)"; done
+
