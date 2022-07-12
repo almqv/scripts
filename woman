@@ -1,0 +1,6 @@
+#!/usr/bin/bash
+
+host=cheat.sh
+
+curl $host/$1
+
