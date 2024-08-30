@@ -1,3 +1,13 @@
 #!/usr/bin/env bash
 
-git add -A && git commit -m "$@"
+# Check if any arguments were provided
+if [ $# -eq 0 ]; then
+    echo "Error: Please provide a commit message."
+    exit 1
+fi
+
+# Add all changes, including new files, modifications, and deletions
+git add -A
+
+# Use all arguments as a single string for the commit message
+git commit -m "$*"
