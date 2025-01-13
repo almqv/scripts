@@ -1,0 +1,7 @@
+#!/bin/bash
+# True color test script
+for i in {0..255}; do
+    # Print colors in foreground
+    printf "\e[38;5;${i}m${i}\e[0m "
+done
+echo
