@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+file=$1
+id=25B9D526D9931718E8C88896B09DD5C28F4E4E89
+
+gpg --clearsign --local-user $id --output $file.asc $file
