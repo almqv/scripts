@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# open - open files, directories, and URLs with the preferred app
+#   open FILE|DIR|URL...
+# Files are classified by content (file --mime-type), not just extension.
+# Same-kind args go to one app instance (e.g. several videos = one mpv playlist).
+set -uo pipefail
+
+editor=nvim
+browser=zen
+imgviewer=loupe
+painter=gimp
+player=mpv
+docview=evince
+officesuite=libreoffice
+archiver=file-roller
+filemgr=nautilus
+terminal=alacritty
+
+if [ $# -eq 0 ]; then
+	echo "usage: open FILE|DIR|URL..." >&2
+	exit 2
+fi
+
+# Detach GUI apps from the terminal so they survive it closing.
+bg() { setsid -f "$@" >/dev/null 2>&1 </dev/null; }
+
+kind_by_ext() {
+	local ext=${1##*.}
+	case ${ext,,} in
+	doc | docx | odt | rtf | xls | xlsx | ods | ppt | pptx | odp | odg) echo office ;;
+	zip | tar | gz | tgz | xz | bz2 | zst | 7z | rar | jar) echo archive ;;
+	*) echo other ;;
+	esac
+}
+
+kind() {
+	local f=$1 mime
+	case $f in
+	http://* | https://* | www.* | file://*) echo url; return ;;
+	esac
+	[ -d "$f" ] && { echo dir; return; }
+	[ -e "$f" ] || { echo text; return; } # new file -> editor creates it
+
+	mime=$(file -b -L --mime-type -- "$f")
+	case $mime in
+	text/html | application/xhtml+xml) echo url ;;
+	image/vnd.adobe.photoshop | image/x-xcf) echo paint ;;
+	image/vnd.djvu | image/x-djvu) echo docs ;;
+	image/*) echo image ;;
+	video/*) echo video ;;
+	audio/*) echo audio ;;
+	application/pdf | application/postscript | application/vnd.comicbook*) echo docs ;;
+	application/msword | application/rtf | text/rtf | application/vnd.ms-* | \
+		application/vnd.openxmlformats-officedocument.* | application/vnd.oasis.opendocument.*)
+		echo office ;;
+	application/zip | application/octet-stream) kind_by_ext "$f" ;; # docx etc. can look like plain zip
+	application/x-tar | application/gzip | application/x-gzip | application/x-xz | application/x-bzip2 | \
+		application/zstd | application/x-7z-compressed | application/x-rar | application/vnd.rar | \
+		application/java-archive)
+		echo archive ;;
+	text/* | inode/x-empty | application/x-empty) echo text ;;
+	*)
+		# json, xml, shell scripts, ... report application/* but are text
+		if [ "$(file -b -L --mime-encoding -- "$f")" != binary ]; then
+			echo text
+		else
+			echo other
+		fi
+		;;
+	esac
+}
+
+text=() url=() dir=() image=() paint=() video=() audio=() docs=() office=() archive=() other=()
+for arg in "$@"; do
+	declare -n bucket="$(kind "$arg")"
+	bucket+=("$arg")
+	unset -n bucket
+done
+
+((${#url[@]})) && bg "$browser" "${url[@]}"
+((${#dir[@]})) && bg "$filemgr" "${dir[@]}"
+((${#image[@]})) && bg "$imgviewer" "${image[@]}"
+((${#paint[@]})) && bg "$painter" "${paint[@]}"
+((${#video[@]})) && bg "$player" -- "${video[@]}"
+((${#docs[@]})) && bg "$docview" "${docs[@]}"
+((${#office[@]})) && bg "$officesuite" "${office[@]}"
+for f in "${archive[@]}"; do bg "$archiver" "$f"; done
+for f in "${other[@]}"; do bg xdg-open "$f"; done
+
+if [ -t 0 ] && [ -t 1 ]; then
+	# In a terminal: play audio right here, then edit text in place.
+	((${#audio[@]})) && "$player" --audio-display=no -- "${audio[@]}"
+	((${#text[@]})) && exec "$editor" -- "${text[@]}"
+else
+	# Launched from a menu/keybind: give audio a window, text a terminal.
+	((${#audio[@]})) && bg "$player" --player-operation-mode=pseudo-gui -- "${audio[@]}"
+	((${#text[@]})) && bg "$terminal" -e "$editor" -- "${text[@]}"
+fi
+exit 0
